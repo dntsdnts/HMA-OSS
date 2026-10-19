@@ -1,6 +1,8 @@
 name: Pull Request
 
-on: pull_request
+on: 
+ - workflow_dispatch
+ - push
 
 jobs:
   build:
@@ -59,9 +61,15 @@ jobs:
       - name: Build debug
         id: buildDebug
         run: |
-          ./gradlew :app:assembleDebug
-          ./gradlew :zygote:assembleDebug
-          echo "debugZIPName=$(ls zygote/build/outputs/magisk/debug/*.zip | awk -F '(/|.zip)' '{print $6}')" >> $GITHUB_OUTPUT
+          ./gradlew :app:assemble
+          ./gradlew :zygote:assemble
+          echo "releaseName=$(ls zygote/build/outputs/magisk/release/*.zip | awk -F '(/|.zip)' '{print $6}')" >> $GITHUB_OUTPUT
+          echo "debugName=$(ls zygote/build/outputs/magisk/debug/*.zip | awk -F '(/|.zip)' '{print $6}')" >> $GITHUB_OUTPUT
+          echo "releaseFile=$(ls zygote/build/outputs/magisk/release/*.zip)" >> $GITHUB_OUTPUT
+          echo "debugFile=$(ls zygote/build/outputs/magisk/debug/*.zip)" >> $GITHUB_OUTPUT
+          echo "ossNum=$(ls app/build/outputs/apk/debug/*.apk | awk -F '(/|.apk)' '{print $6}' | cut -f4 -d'-')" >> $GITHUB_OUTPUT
+
+          # echo "debugZIPName=$(ls zygote/build/outputs/magisk/debug/*.zip | awk -F '(/|.zip)' '{print $6}')" >> $GITHUB_OUTPUT
 
       - name: Upload debug ZIP
         if: success()
@@ -70,4 +78,4 @@ jobs:
           archive: false
           name: ${{ steps.buildDebug.outputs.debugZIPName }}
           path: |
-            zygote/build/outputs/magisk/debug/*.zip
+            zygote/build/outputs/magisk/
